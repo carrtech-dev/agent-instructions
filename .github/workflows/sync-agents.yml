@@ -48,17 +48,22 @@ jobs:
           install_dir="$RUNNER_TEMP/gh-cli"
           mkdir -p "$install_dir"
 
-          asset_url="$(
-            curl -sSfL https://api.github.com/repos/cli/cli/releases/latest |
-              grep -Eom 1 'https://[^"]+gh_[^"]+_linux_amd64\.tar\.gz'
-          )"
+          release_json="$RUNNER_TEMP/gh-release.json"
+          archive="$RUNNER_TEMP/gh-cli.tar.gz"
+
+          curl -sSfL \
+            https://api.github.com/repos/cli/cli/releases/latest \
+            -o "$release_json"
+          grep -Eo 'https://[^"]+gh_[^"]+_linux_amd64\.tar\.gz' "$release_json" > "$RUNNER_TEMP/gh-assets.txt"
+          IFS= read -r asset_url < "$RUNNER_TEMP/gh-assets.txt" || asset_url=""
 
           if [ -z "$asset_url" ]; then
             echo "Could not resolve latest GitHub CLI linux_amd64 release asset."
             exit 1
           fi
 
-          curl -sSfL "$asset_url" | tar -xz -C "$install_dir" --strip-components 1
+          curl -sSfL "$asset_url" -o "$archive"
+          tar -xzf "$archive" -C "$install_dir" --strip-components 1
           echo "$install_dir/bin" >> "$GITHUB_PATH"
 
       - name: Configure git authentication
