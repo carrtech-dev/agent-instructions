@@ -106,7 +106,7 @@ jobs:
               git checkout -b "$BRANCH_NAME"
               cp /tmp/AGENTS.md ./AGENTS.md
 
-              if git diff --quiet -- ./AGENTS.md; then
+              if [ -z "$(git status --porcelain -- ./AGENTS.md)" ]; then
                 echo "No AGENTS.md changes for ${repo}"
                 touch "$workdir/.no-agent-instructions-change"
                 exit 0
