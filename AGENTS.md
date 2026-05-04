@@ -90,35 +90,34 @@ risk.
 If a test-first workflow is not practical for a specific change, document why in
 the PR and describe the alternative validation that was performed.
 
-## E2E Database Harness
+## Integration and E2E Testing
 
-The web E2E test harness is documented in
-`apps/docs/docs/development/testing.md`. Treat that document as the source of
-truth for how the harness starts the in-memory Postgres/TimescaleDB container,
-runs migrations, seeds baseline data, authenticates users, and isolates tests.
-Do not duplicate those setup details here.
+Use each repository's own testing documentation, fixtures, and helper patterns
+as the source of truth for integration and end-to-end testing. If the repository
+documents a specific test harness, follow that harness instead of duplicating or
+replacing its setup details.
 
-Rules for using the harness:
+Rules for integration and end-to-end tests:
 
-- When a feature reads from or writes to the database, use the existing
-  database-backed harness. Do not replace database behavior with mocks when the
-  behavior under test depends on SQL, migrations, constraints, auth/session rows,
-  organisation scoping, cascading deletes, or persisted state.
-- When a test needs records beyond the documented baseline seed data, seed those
+- When behavior depends on persisted state, migrations, constraints,
+  authentication, authorization, ownership, tenancy, or other infrastructure
+  behavior, prefer the repository's real integration test harness over mocks.
+- When a test needs records beyond documented baseline seed data, seed those
   records explicitly through the existing fixture/helper pattern. Do not rely on
   state leaked from another test.
 - Keep seed data minimal and relevant to the behavior under test. Prefer
   deterministic values and create the relationships the production code expects,
-  especially `organisation_id` and ownership/scoping fields.
-- Add stable `data-testid` attributes for E2E interactions and assertions rather
-  than selecting by generated classes or layout-dependent selectors.
+  including ownership, tenancy, and scoping fields where applicable.
+- For browser-based E2E tests, add stable test selectors for interactions and
+  assertions rather than selecting by generated classes or layout-dependent
+  selectors.
 
 ## Pull Requests
 
 After finishing the local implementation for a task, commit the work, push it to
 GitHub, create a pull request, monitor it, and merge it into `main` unless the
 user explicitly asks not to. Always use Conventional Commit names for commits
-and pull request titles so release-please can function correctly.
+and pull request titles so release automation can function correctly.
 
 Keep monitoring the pull request until all checks pass and the branch can merge
 without conflict. If checks fail, errors appear, or a merge conflict is detected,
@@ -126,7 +125,7 @@ fix the issue in a new dedicated worktree and create a replacement pull request.
 Do not reuse the failed pull request's worktree for the next attempt.
 
 All pull request titles must use Conventional Commit format because squash merges
-use the PR title as the release-please input.
+often use the PR title as release automation input.
 
 Use this format:
 
@@ -141,10 +140,10 @@ when the affected package or area is clear.
 Examples:
 
 ```text
-feat(web): add GitLab air-gap bundler
-fix(web): repair customer installer bundle
-ci(release): add Docker image smoke test
-docs(install): document custom HTTPS ports
+feat(api): add token rotation endpoint
+fix(auth): reject expired sessions
+ci(release): add artifact smoke test
+docs(setup): document custom HTTPS ports
 ```
 
 Do not open PRs with non-conventional titles such as `[codex] add feature`.
@@ -152,10 +151,10 @@ Do not open PRs with non-conventional titles such as `[codex] add feature`.
 ## Progress Tracking
 
 When a new feature is created that satisfies part or all of an existing
-requirement, update the repo-root `PROGRESS.md` as part of the same change. If
-the feature fully satisfies the requirement, state that clearly. If it only
-satisfies part of the requirement, record exactly which part is complete and
-what remains outstanding.
+requirement, update the repository's progress or roadmap tracking if one exists.
+If the feature fully satisfies the requirement, state that clearly. If it only
+satisfies part of the requirement, record exactly which part is complete and what
+remains outstanding.
 
 ## Completion Cleanup
 
