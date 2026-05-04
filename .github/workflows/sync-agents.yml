@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate sync token
         run: |
@@ -37,6 +37,29 @@ jobs:
             echo "AGENTS_SYNC_TOKEN is required. Create a repository secret with write access to the target repositories."
             exit 1
           fi
+
+      - name: Install GitHub CLI
+        run: |
+          set -euo pipefail
+          if command -v gh >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          install_dir="$RUNNER_TEMP/gh-cli"
+          mkdir -p "$install_dir"
+
+          asset_url="$(
+            curl -sSfL https://api.github.com/repos/cli/cli/releases/latest |
+              grep -Eom 1 'https://[^"]+gh_[^"]+_linux_amd64\.tar\.gz'
+          )"
+
+          if [ -z "$asset_url" ]; then
+            echo "Could not resolve latest GitHub CLI linux_amd64 release asset."
+            exit 1
+          fi
+
+          curl -sSfL "$asset_url" | tar -xz -C "$install_dir" --strip-components 1
+          echo "$install_dir/bin" >> "$GITHUB_PATH"
 
       - name: Configure git authentication
         run: gh auth setup-git
@@ -100,3 +123,12 @@ jobs:
               --title "$PR_TITLE" \
               --body "Syncs this repository's root AGENTS.md from carrtech-dev/agent-instructions."
           done < sync-targets.txt
+
+      - name: Clean up runner workspace
+        if: always()
+        run: |
+          set +e
+          docker run --rm -v "$GITHUB_WORKSPACE:/ws" alpine \
+            chown -R "$(id -u):$(id -g)" /ws 2>/dev/null || true
+          find "$GITHUB_WORKSPACE" -mindepth 1 -delete 2>/dev/null || true
+          exit 0
