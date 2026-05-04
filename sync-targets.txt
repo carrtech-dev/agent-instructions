@@ -1,5 +1,4 @@
 carrtech-dev/ct-cve
 carrtech-dev/ct-ops
-carrtech-dev/ct-passwd
 carrtech-dev/ct-portal
 carrtech-dev/licence-public-keys
