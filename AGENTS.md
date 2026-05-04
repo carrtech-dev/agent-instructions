@@ -76,6 +76,24 @@ Before writing implementation code, write the relevant tests first. Include unit
 tests and end-to-end tests where appropriate for the scope and risk of the
 change.
 
+If the repository does not already have a test suite or test command, add a
+minimal test harness that fits the technology in use before making the feature
+change. The harness does not need broad coverage immediately, but it must be
+able to run in local development and CI, and it must include at least one
+passing smoke test that proves the harness works.
+
+Choose the harness based on the repository's actual stack and conventions:
+
+- For Next.js or other browser-facing web applications, add an end-to-end test
+  harness such as Playwright, plus any unit/component test harness that is
+  already standard for the repo.
+- For Go services, CLIs, and libraries, use Go's built-in `testing` package
+  unless the repository already standardizes on another Go test framework.
+- For Node.js packages that are not browser applications, add a unit test
+  harness that matches the package manager and module system already in use.
+- For other stacks, choose the smallest conventional test harness for that
+  language or framework and document how to run it.
+
 Run the new tests before implementation and confirm they fail for the expected
 reason. Then implement the code needed to make those tests pass. This helps
 confirm the implementation does what was intended and ensures new behavior has
