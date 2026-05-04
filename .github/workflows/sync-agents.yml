@@ -20,7 +20,7 @@ concurrency:
 jobs:
   sync:
     name: Open downstream sync PRs
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       GH_TOKEN: ${{ secrets.AGENTS_SYNC_TOKEN }}
       BRANCH_NAME: chore/sync-shared-agent-instructions-${{ github.run_id }}
@@ -37,6 +37,9 @@ jobs:
             echo "AGENTS_SYNC_TOKEN is required. Create a repository secret with write access to the target repositories."
             exit 1
           fi
+
+      - name: Configure git authentication
+        run: gh auth setup-git
 
       - name: Prepare generated AGENTS.md
         run: |
